@@ -1,7 +1,7 @@
 import numpy as np
 import do_mpc
 
-def template_mhe(model, t_step=1.0):
+def template_mhe(model, t_step=1.0, n_horizon=10, Q=None, R=None):
 
     # We got no parameters to estimate, so we don't use the second argument
     mhe = do_mpc.estimator.MHE(model)
