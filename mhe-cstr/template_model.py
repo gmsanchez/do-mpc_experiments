@@ -43,7 +43,7 @@ def template_model(symvar_type='SX'):
     rate1 = k1*cA - k_1*cB*cC
     rate2 = k2*cB**2 - k_2*cC
 
-    has_process_noise = False  # if set to True, we get some errors
+    has_process_noise = True  # if set to True, we get some errors
     model.set_rhs('cA', -rate1, process_noise=has_process_noise)
     model.set_rhs('cB', rate1 - 2*rate2, process_noise=has_process_noise)
     model.set_rhs('cC', rate1 + rate2, process_noise=has_process_noise)

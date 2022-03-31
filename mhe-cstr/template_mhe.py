@@ -1,30 +1,33 @@
 import numpy as np
 import do_mpc
 
-def template_mhe(model, t_step=1.0):
+def template_mhe(model, t_step=1.0, n_horizon=10, P=None, Q=None, R=None):
 
     # We got no parameters to estimate, so we don't use the second argument
     mhe = do_mpc.estimator.MHE(model)
 
     setup_mhe = {
-        'n_horizon': 10,
-        't_step': 0.1,
-        'store_full_solution': True,
+        'n_horizon': n_horizon,
+        't_step': t_step,
+        'store_full_solution': False,
         'nl_cons_check_colloc_points': True,
         'nlpsol_opts': {
-        'ipopt.print_level': 0,
+        'ipopt.print_level': 0, 'print_time': 0, 'ipopt.suppress_all_output': 'yes'
             # 'ipopt.linear_solver': 'MA27'
         },
     }
-
     mhe.set_param(**setup_mhe)
 
     P_v = model.p['P_v']
-    P_x = np.eye(model.n_x)  # model.p['P_x']
+    P_x = np.eye(model.n_x) * 4.0  # model.p['P_x']
     # P_p = model.p['P_p']
+    if Q is None:
+        P_w = np.eye(model.n_x)
+    else:
+        P_w = np.linalg.inv(Q)
 
     # Set the default MHE objective by passing the weighting matrices:
-    mhe.set_default_objective(P_v=P_v, P_x=P_x)
+    mhe.set_default_objective(P_v=P_v, P_x=P_x, P_w=P_w)
 
     # P_y is listed in the time-varying parameters and must be set.
     # This is more of a proof of concept (P_y is not actually changing over time).
@@ -43,7 +46,11 @@ def template_mhe(model, t_step=1.0):
     p_template_mhe = mhe.get_p_template()
 
     def p_fun_mhe(t_now):
-        p_template_mhe['P_v'] = np.eye(1)
+        if R is None:
+            p_template_mhe['P_v'] = np.eye(1)
+        else:
+            p_template_mhe['P_v'] = np.linalg.inv(R)
+
         return p_template_mhe
 
     mhe.set_p_fun(p_fun_mhe)
@@ -59,6 +66,14 @@ def template_mhe(model, t_step=1.0):
         return y_template
 
     mhe.set_y_fun(y_fun)
+
+    mhe.bounds['lower','_x', 'cA'] = 0
+    mhe.bounds['lower','_x', 'cB'] = 0
+    mhe.bounds['lower','_x', 'cC'] = 0
+
+    mhe.bounds['upper','_x', 'cA'] = np.inf
+    mhe.bounds['upper','_x', 'cB'] = np.inf
+    mhe.bounds['upper','_x', 'cC'] = np.inf
 
     mhe.setup()
 
