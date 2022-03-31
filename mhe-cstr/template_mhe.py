@@ -1,7 +1,7 @@
 import numpy as np
 import do_mpc
 
-def template_mhe(model, t_step=1.0, n_horizon=10, P=None, Q=None, R=None):
+def template_mhe(model, t_step=1.0):
 
     # We got no parameters to estimate, so we don't use the second argument
     mhe = do_mpc.estimator.MHE(model)
@@ -9,7 +9,7 @@ def template_mhe(model, t_step=1.0, n_horizon=10, P=None, Q=None, R=None):
     setup_mhe = {
         'n_horizon': n_horizon,
         't_step': t_step,
-        'store_full_solution': False,
+        'store_full_solution': True,
         'nl_cons_check_colloc_points': True,
         'nlpsol_opts': {
         'ipopt.print_level': 0, 'print_time': 0, 'ipopt.suppress_all_output': 'yes'
