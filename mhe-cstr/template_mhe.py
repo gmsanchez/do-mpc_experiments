@@ -8,7 +8,7 @@ def template_mhe(model, t_step=1.0):
 
     setup_mhe = {
         'n_horizon': 10,
-        't_step': 0.1,
+        't_step': t_step,
         'store_full_solution': True,
         'nl_cons_check_colloc_points': True,
         'nlpsol_opts': {
