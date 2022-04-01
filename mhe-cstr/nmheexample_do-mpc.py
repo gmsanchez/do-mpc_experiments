@@ -51,7 +51,7 @@ usim = np.zeros((Nsim,Nu)) # This is just a dummy input.
 xsim = np.zeros((Nsim+1,Nx))
 xsim[0,:] = x0
 xhat = np.zeros((Nsim+1,Nx))
-xhat[0,:] = x0
+xhat[0,:] = x_0
 yclean = np.zeros((Nsim, Ny))
 ysim = np.zeros((Nsim, Ny))
 
@@ -71,14 +71,14 @@ for t in range(Nsim):
 
     if t <= N_horizon:
         mhe = template_mhe(model, t_step=t_step, n_horizon=t+1, P=P_seq[t], Q=Q, R=R)
-        mhe.x0 = x0
+        mhe.x0 = x_0
         # for i in range(t):
         #     mhe.data.update(_y=yclean[i])
         mhe.set_initial_guess()
         current_measurement = ysim[0:t]
         mhe.data._y = np.reshape(current_measurement, (t, 1))
         # print(mhe.data)
-        xhat[t+1,:] = np.squeeze(mhe.make_step(ysim[t,:]))
+        xhat[t,:] = np.squeeze(mhe.make_step(ysim[t,:]))
         print(t, "data:\n", mhe.data._y)
         # xhat[t,:] = np.squeeze(mhe.opt_x_num['_x',0,0])
     else:
@@ -94,7 +94,7 @@ for t in range(Nsim):
 
         mhe.set_p_fun(p_fun_mhe)
 
-        xhat[t+1,:] = np.squeeze(mhe.make_step(ysim[t,:]))
+        xhat[t,:] = np.squeeze(mhe.make_step(ysim[t,:]))
 
 
     # current_measurement = yclean[t:t+N_horizon-1]
@@ -121,7 +121,7 @@ species = ["A", "B", "C"]
 
 for i in range(Nx):
     plt.plot(tplot, xsim[:, i], label=species[i], color=colors[i])
-    plt.plot(tplot, xhat[:, i], marker='o', linestyle='dotted', color=colors[i])
+    plt.plot(tplot[:Nsim], xhat[:Nsim, i], marker='o', linestyle='dotted', color=colors[i])
 
 plt.legend()
 plt.xlabel("Time")
