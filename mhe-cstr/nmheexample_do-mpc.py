@@ -7,6 +7,12 @@ from template_model import template_model
 from template_mhe import template_mhe
 from template_simulator import template_simulator
 
+np.random.seed(927) # Seed random number generator.
+
+import pickle
+with open('P_seq.pkl', 'rb') as f:
+    P_seq = pickle.load(f)
+
 t_step = 0.25
 Nsim = 80
 tplot = np.arange(Nsim+1)*t_step
@@ -26,8 +32,6 @@ Nw = Nx
 x_0 = np.array([1.0, 0.0, 4.0])
 x0 = np.array([0.5, 0.05, 0.0])
 
-x_0 = x0
-
 # Simulate
 simulator.x0 = x0
 u0 = np.array([[0]])
@@ -38,8 +42,9 @@ sigma_p = 0.5  # Standard deviation for prior
 
 Q = np.diag((sigma_w*np.ones((Nw,)))**2)
 R = np.diag((sigma_v*np.ones((Nv,)))**2)
+P = P_seq[0]
 # R = np.diag([0.5])
-# w = sigma_w*np.random.randn(Nsim,Nw)
+w = sigma_w*np.random.randn(Nsim,Nw)
 v = sigma_v*np.random.randn(Nsim,Nv)
 
 usim = np.zeros((Nsim,Nu)) # This is just a dummy input.
@@ -65,20 +70,31 @@ for t in range(Nsim):
     # xhat[t+1,:] = np.squeeze(mhe.make_step(ysim[t,:]))
 
     if t <= N_horizon:
-        mhe = template_mhe(model, t_step=t_step, n_horizon=t+1, Q=Q, R=R)
+        mhe = template_mhe(model, t_step=t_step, n_horizon=t+1, P=P_seq[t], Q=Q, R=R)
         mhe.x0 = x0
         # for i in range(t):
         #     mhe.data.update(_y=yclean[i])
         mhe.set_initial_guess()
-        current_measurement = yclean[0:t]
+        current_measurement = ysim[0:t]
         mhe.data._y = np.reshape(current_measurement, (t, 1))
         # print(mhe.data)
-        xhat[t+1,:] = np.squeeze(mhe.make_step(yclean[t,:]))
+        xhat[t+1,:] = np.squeeze(mhe.make_step(ysim[t,:]))
         print(t, "data:\n", mhe.data._y)
         # xhat[t,:] = np.squeeze(mhe.opt_x_num['_x',0,0])
     else:
         # pass
-        xhat[t+1,:] = np.squeeze(mhe.make_step(yclean[t,:]))
+
+        p_template_mhe = mhe.get_p_template()
+
+        def p_fun_mhe(t_now):
+            p_template_mhe['P_v'] = casadi.inv(R)
+            p_template_mhe['P_x'] = casadi.diag(casadi.inv(P_seq[t]))
+
+            return p_template_mhe
+
+        mhe.set_p_fun(p_fun_mhe)
+
+        xhat[t+1,:] = np.squeeze(mhe.make_step(ysim[t,:]))
 
 
     # current_measurement = yclean[t:t+N_horizon-1]

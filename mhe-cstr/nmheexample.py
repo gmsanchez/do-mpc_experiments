@@ -78,7 +78,7 @@ def lxfunc(x, x0bar, Pinv):
 lx = mpc.getCasadiFunc(lxfunc, [Nx, Nx, (Nx, Nx)], ["x", "x0bar", "Pinv"], "lx")
 
 # First simulate everything.
-w = sigma_w*random.randn(Nsim,Nw)
+w = 0*sigma_w*random.randn(Nsim,Nw)
 v = sigma_v*random.randn(Nsim,Nv)
 
 usim = np.zeros((Nsim,Nu)) # This is just a dummy input.
@@ -102,7 +102,11 @@ x0bar = x_0
 xhat[0,:] = x0bar
 guess = {}
 totaltime = -time.time()
+
+P_seq = []
+
 for t in range(Nsim):
+    P_seq += [P]
     # Define sizes of everything.    
     N = {"x":Nx, "y":Ny, "u":Nu}
     if fullInformation:
@@ -197,3 +201,8 @@ if doPlots:
     fig.subplots_adjust(left=0.1, right=0.8)
     # mpc.plots.showandsave(fig,"nmheexample.pdf")
     fig.show()
+
+
+import pickle
+with open('P_seq.pkl', 'wb') as f:
+    pickle.dump(P_seq, f)
