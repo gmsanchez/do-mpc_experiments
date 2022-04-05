@@ -107,7 +107,7 @@ P_seq = []
 
 for t in range(Nsim):
     P_seq += [P]
-    # Define sizes of everything.    
+    # Define sizes of everything.
     N = {"x":Nx, "y":Ny, "u":Nu}
     if fullInformation:
         N["t"] = t
@@ -154,7 +154,7 @@ for t in range(Nsim):
     for k in set(["x","w","v"]).intersection(sol.keys()):
         guess[k] = sol[k].copy()
     
-    # Update guess and prior if not using full information estimation.    
+    # Update guess and prior if not using full information estimation.
     if not fullInformation and t + 1 > Nt:
         for k in guess.keys():
             guess[k] = guess[k][1:,...] # Get rid of oldest measurement.
@@ -176,7 +176,7 @@ if doPlots:
     xax = ax[0]
     yax = ax[1]
 
-    # Plot states.    
+    # Plot states.
     colors = ["red","blue","green"]
     species = ["A", "B", "C"]    
     for (i, (c, s)) in enumerate(zip(colors, species)):
@@ -202,7 +202,12 @@ if doPlots:
     # mpc.plots.showandsave(fig,"nmheexample.pdf")
     fig.show()
 
+saveData = True
+if saveData:
+    np.savetxt('mpctools_xsim.txt', xsim)
+    np.savetxt('mpctools_ysim.txt', ysim)
+    np.savetxt('mpctools_xhat.txt', xhat)
+    import pickle
 
-import pickle
-with open('P_seq.pkl', 'wb') as f:
-    pickle.dump(P_seq, f)
+    with open('mpctools_P_seq.pkl', 'wb') as f:
+        pickle.dump(P_seq, f)

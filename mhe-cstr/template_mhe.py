@@ -1,3 +1,4 @@
+import casadi
 import numpy as np
 import do_mpc
 import casadi
@@ -19,6 +20,11 @@ def template_mhe(model, t_step=1.0, n_horizon=10, P=None, Q=None, R=None):
     }
     mhe.set_param(**setup_mhe)
 
+    P_x = casadi.diag(model.p['P_x'])
+    P_w = casadi.diag(model.p['P_w'])
+    P_v = casadi.diag(model.p['P_v'])
+    # P_p = model.p['P_p']
+
     if P is None:
         P = np.eye(model.n_x)
     if Q is None:
@@ -30,8 +36,6 @@ def template_mhe(model, t_step=1.0, n_horizon=10, P=None, Q=None, R=None):
     P_x = casadi.diag(model.p['P_x'])
     P_w = casadi.inv(Q)
     # P_p = model.p['P_p']
-
-    print(P,Q,R)
 
     # Set the default MHE objective by passing the weighting matrices:
     mhe.set_default_objective(P_v=P_v, P_x=P_x, P_w=P_w)
@@ -53,8 +57,20 @@ def template_mhe(model, t_step=1.0, n_horizon=10, P=None, Q=None, R=None):
     p_template_mhe = mhe.get_p_template()
 
     def p_fun_mhe(t_now):
-        p_template_mhe['P_v'] = casadi.inv(R)
-        p_template_mhe['P_x'] = casadi.diag(casadi.inv(P))
+        if P is None:
+            p_template_mhe['P_x'] = np.eye(model.n_x)
+        else:
+            p_template_mhe['P_x'] = casadi.diag(casadi.inv(P))
+        if Q is None:
+            p_template_mhe['P_w'] = np.eye(model.n_x)
+        else:
+            p_template_mhe['P_w'] = casadi.diag(casadi.inv(Q))
+        if R is None:
+            p_template_mhe['P_v'] = np.eye(model.n_v)
+        else:
+            p_template_mhe['P_v'] = casadi.diag(casadi.inv(R))
+            p_template_mhe['P_v'] = casadi.inv(R)
+            p_template_mhe['P_x'] = casadi.diag(casadi.inv(P))
 
         return p_template_mhe
 
