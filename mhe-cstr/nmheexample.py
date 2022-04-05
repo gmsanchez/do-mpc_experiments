@@ -101,8 +101,10 @@ what = np.zeros((Nsim,Nw))
 x0bar = x_0
 xhat[0,:] = x0bar
 guess = {}
+P_seq = []
 totaltime = -time.time()
 for t in range(Nsim):
+    P_seq += [P]
     # Define sizes of everything.    
     N = {"x":Nx, "y":Ny, "u":Nu}
     if fullInformation:
@@ -197,3 +199,13 @@ if doPlots:
     fig.subplots_adjust(left=0.1, right=0.8)
     # mpc.plots.showandsave(fig,"nmheexample.pdf")
     fig.show()
+
+
+saveData = True
+if saveData:
+    np.savetxt('mpctools_xsim.txt', xsim)
+    np.savetxt('mpctools_ysim.txt', ysim)
+    np.savetxt('mpctools_xhat.txt', xhat)
+    import pickle
+    with open('mpctools_P_seq.pkl', 'wb') as f:
+        pickle.dump(P_seq, f)

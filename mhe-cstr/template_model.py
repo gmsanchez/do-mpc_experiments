@@ -24,12 +24,14 @@ def template_model(symvar_type='SX'):
     # Arrival cost
 
     # Parameter for the MHE: Weighting of the arrival cost (parameters):
-    # P_x = model.set_variable(var_type='_p', var_name='P_x', shape=(3,3))
+    P_x = model.set_variable(var_type='_p', var_name='P_x', shape=(3,1))
     # P_p = model.set_variable(var_type='_p', var_name='P_p', shape=(1,1))
 
+    P_w = model.set_variable(var_type='_p', var_name='P_w', shape=(3,1))
     # Time-varying parameter for the MHE: Weighting of the measurements (tvp):
     # Not time varying yet
     P_v = model.set_variable(var_type='_p', var_name='P_v', shape=(1, 1))
+
 
     # Measurements of the system
     measurements = RT * (cA + cB + cC)
